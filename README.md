@@ -64,4 +64,4 @@ cd atlas-files_manager
 - Github: [@Jaylenperez](https://github.com/Jaylenperez)
 
 **Isaac Edwards**
-- Github: [@Jaylenperez](https://github.com/DTBIssy)
+- Github: [@DTBIssy](https://github.com/DTBIssy)
