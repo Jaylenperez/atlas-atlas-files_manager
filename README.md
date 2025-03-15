@@ -15,7 +15,7 @@ The project includes features like:
         <summary>
         CLICK HERE!!
         </summary>
-        :brain: <a href="#learning objective">Learning Objective</a>
+        :brain: <a href="#learning objective">Learning Objectives</a>
         <br>
         :gear: <a href="#installation">Installation</a>
         <br>
@@ -24,7 +24,7 @@ The project includes features like:
         :bust_in_silhouette: <a href="#authors">Authors</a>
 </details>
 
-## :brain: <span id="learning objective">Learning Objective</span>
+## :brain: <span id="learning objective">Learning Objectives</span>
 
 * How to create an API with Express
 * How to authenticate a user
@@ -46,7 +46,6 @@ Ensure you have the following installed:
 ```{r}
 git clone https://github.com/Jaylenperez/atlas-files_manager.git
 cd atlas-files_manager
-}
 ```
 
 ## :robot: <span id="documentation">API Documentation</span>
