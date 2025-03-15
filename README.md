@@ -1,7 +1,7 @@
 # <p align="center">FILES MANAGER EXPRESS</p>
 > Files Manager Express is a backend project designed to implement a simple file management system with authentication, storage, and retrieval functionalities. This project integrates various backend technologies such as Node.js, Express, MongoDB, Redis, and Bull to provide a robust file management API.
 
-The project includes features like:
+### The project includes features like:
 
 * User authentication with tokens
 * Uploading and managing files
