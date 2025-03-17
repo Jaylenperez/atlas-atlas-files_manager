@@ -1,19 +1,15 @@
-const express = require('express')
-const { default: AC } = require('./controllers/AppController')
-const routes = require('./routes/index')
+// server.js
+const express = require('express');
+const routes = require('./routes/index');
 
-const app = express()
-const port = 5000
+const app = express();
+const PORT = 5000;
 
-app.get('/', (req, res) => {
-    res.end("complte")
-})
+app.use(express.json());
+app.use('/', routes);
 
-app.get('/status', (req, res) => {
-    if (res){
-        res.end(routes)
-        console.log(routes)
-    }
-})
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 
-app.listen(port)
+module.exports = app;

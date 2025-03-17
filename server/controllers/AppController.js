@@ -1,21 +1,28 @@
+import { json } from "express"
+
 const { default: redisClient } = require("../../utils/redis")
-// const { default: dbClient } = require("../../utils/db")
+const { default: dbClient } = require("../../utils/db")
 
 class AppController{
     constructor() {
     }
 
     getStatus(request, response) {
-        if (redisClient.isAlive() === true) {
-            return ({"redis": true}, 200)
+        if (redisClient.isAlive() === true && dbClient.isAlive() === true) {
+            console.log('Success')
+            return JSON.stringify({"redis": true, "db": true}, 200)
+        }
+        else{
+            console.log("Somethings Not working here")
         }
     }
 
-    // getStats(request, response) {
-    //     let users = await dbClient.nbUsers()
-    //     let files = await dbClient.nbFiles()
-    //     return (200, {"users": users, "files": files})
-    // }
+    getStats(request, response) {
+        let users = dbClient.nbUsers()
+        let files = dbClient.nbFiles()
+        console.log('Success stats')
+        return JSON.stringify({"users": users, "files": files}, 200)
+    }
 
 }
 
