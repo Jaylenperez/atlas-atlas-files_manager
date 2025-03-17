@@ -1,10 +1,15 @@
-const express = require('express')
-const router = express.Router()
-const { default: AC } = require('../controllers/AppController');
+// routes/index.js
+const express = require('express');
+const {default: AC} = require('../controllers/AppController');
+const { default: dbClient } = require('../../utils/db');
+
+const router = express.Router();
 
 router.get('/status', (req, res) => {
-    const result = AC.getStatus(req, res);
-    res.json(result);
+    res.json(AC.getStatus())
 });
-module.exports = router
+router.get('/stats', (req, res) => {
+    res.json(AC.getStats())
+})
 
+module.exports = router;
