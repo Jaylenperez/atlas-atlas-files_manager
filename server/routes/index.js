@@ -5,11 +5,14 @@ const { default: dbClient } = require('../../utils/db');
 
 const router = express.Router();
 
-router.get('/status', (req, res) => {
-    res.json(AC.getStatus())
+router.get('/status', (req, res, next) => {
+    AC.getStatus()
+    .then(status => res.json(status))
+    .catch(next)
 });
-router.get('/stats', (req, res) => {
-    res.json(AC.getStats())
-})
-
+router.get('/stats', (req, res, next) => {
+    AC.getStats()
+        .then(stats => res.json(stats))
+        .catch(next); // pass errors to your error handling middleware
+});
 module.exports = router;

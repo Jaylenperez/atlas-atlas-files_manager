@@ -14,11 +14,14 @@ class RedisClient {
     this.client.on('error', (err) => {
       console.error(`Redis Client Error: ${err}`);
     });
+
   }
+
+
 
   // Returns true when Redis connection successful
   isAlive() {
-    return true;
+    return this.client.connected;
   }
 
   // Returns Redis value stored for given key

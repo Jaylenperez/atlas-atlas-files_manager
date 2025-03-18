@@ -7,24 +7,29 @@ class AppController{
     constructor() {
     }
 
-    getStatus(request, response) {
-        if (redisClient.isAlive() === true && dbClient.isAlive() === true) {
-            console.log('Success')
-            return JSON.stringify({"redis": true, "db": true}, 200)
+    async getStatus(request, response) {
+      try {
+        const redis = await redisClient.isAlive()
+        const db = await dbClient.isAlive()
+        console.log('Success')
+        return {redis, db}
         }
-        else{
-            console.log("Somethings Not working here")
+        catch (error) {
+            console.error('Error', error)
         }
     }
 
-    getStats(request, response) {
-        let users = dbClient.nbUsers()
-        let files = dbClient.nbFiles()
+     async getStats(request, response) {
+        try {
+        const users = await dbClient.nbUsers()
+        const files = await dbClient.nbFiles()
         console.log('Success stats')
-        return JSON.stringify({"users": users, "files": files}, 200)
+        return {users, files}
+    }   catch (error) {
+        console.error('Error', error)
+        return {users: 0, files: 0}
     }
-
-}
+}}
 
 const AC = new AppController
 export default AC
