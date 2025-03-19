@@ -2,7 +2,7 @@
 const express = require('express');
 const {default: AC} = require('../controllers/AppController');
 const { default: dbClient } = require('../../utils/db');
-const { default: UsersController } = require('../controllers/UsersController');
+const { default: UC } = require('../controllers/UsersController');
 
 const router = express.Router();
 //GETs
@@ -19,7 +19,7 @@ router.get('/stats', (req, res, next) => {
 
 //POSTs
 router.post('/users', (req, res, next) => {
-    UsersController.postNew()
+    UC.postNew(req, res)
         .then(users => res.json(users))
         .catch(next); // pass errors to your error handling middleware
 });
