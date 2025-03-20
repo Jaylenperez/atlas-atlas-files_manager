@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
 class DBClient {
   constructor() {
@@ -50,8 +50,10 @@ class DBClient {
   getDB() {
     return this.db;
   }
+
 }
 
 // Create and export a single instance of DBClient
 const dbClient = new DBClient();
 export default dbClient;
+export {ObjectId}

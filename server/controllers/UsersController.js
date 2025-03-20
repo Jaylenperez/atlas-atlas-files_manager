@@ -1,5 +1,8 @@
+import { use } from 'chai';
 import crypto from 'crypto';
-const { default: dbClient } = require('../../utils/db');
+const sha1 = require("sha1")
+const { default: dbClient, ObjectId } = require('../../utils/db');
+const { default: redisClient } = require('../../utils/redis')
 
 class UsersController {
   async postNew(req, res) {
@@ -24,14 +27,48 @@ class UsersController {
         return res.status(400).json({ error: 'Already exist' });
       }
 
-      const hashed = crypto.createHash('sha1').update(password).digest('hex');
+      const hashed = sha1(password);
 
-      const { insertedId } = await db.collection('users').insertOne({ email, password: hashed });
+      const { insertedId } = await db.collection('users').insertOne({ id, email, password: hashed });
 
-      return res.status(201).json({ id: insertedId.toString(), email });
+      res.status(201).json({ id: insertedId.toString(), email });
     } catch (err) {
       console.error('UsersController.postNew error:', err);
       return res.status(500).json({ error: 'Internal error' });
+    }
+  }
+  async getMe(req, res) {
+    const token = req.headers['x-token'];
+
+    console.log(token)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized 1' });
+    }
+
+    const db = dbClient.getDB();
+    if (!db) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+
+    const redisKey = `auth_${token}`;
+    console.log(redisKey)
+    const userId = await redisClient.get(redisKey);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized 2' });
+    }
+    console.log(`money ${userId}`)
+    try {
+      const user = await db.collection('users').findOne({_id: ObjectId(userId)});
+      console.log(`more money ${user.email}`)
+      if (!user) {
+        return res.status(401).json({ error: "no user at all" });
+      }
+      const result = {id: user._id,  email: user.email}
+
+      return res.json(result); // Return id and email only
+    } catch (error) {
+      console.error("Error in getMe:", error);
+      return res.status(500).json({ error: error.message });
     }
   }
 }

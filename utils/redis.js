@@ -1,69 +1,65 @@
-import { createClient } from 'redis';
+const redis = require('redis')
 
 class RedisClient {
   constructor() {
-    // Create Client
-    this.client = createClient();
+    this.client = redis.createClient();
 
-    // Success Message
-    this.client.on('connect', () => {
-      console.log('Connected Successfully to Redis');
-    });
-
-    // Error Message
-    this.client.on('error', (err) => {
-      console.error(`Redis Client Error: ${err}`);
-    });
-
+    if (!this.client.connected) {
+      this.client.on('connect', () => {
+        console.log('Redis client connected', this.client.connected);
+      });
+    } else {
+      console.log('Redis client is already connected');
+    }
   }
 
-
-
-  // Returns true when Redis connection successful
   isAlive() {
-    return this.client.connected;
+    return this.client.isReady;
   }
 
-  // Returns Redis value stored for given key
   async get(key) {
-    return new Promise((resolve, reject) => {
-      this.client.get(key, (err, value) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(value);
-        }
+    try {
+      const result = await new Promise((resolve, reject) => {
+        this.client.get(key, (err, reply) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(reply);
+          }
+        });
       });
-    });
+
+      if (result === null) {
+        return false;
+      }
+
+      return `${result}`;
+    } catch (err) {
+      console.error(`Redis GET error for key ${key}: ${err}`);
+      return null;
+    }
   }
 
-  // Stores key value pairs and their expiration
   async set(key, value, duration) {
-    return new Promise((resolve, reject) => {
-      this.client.setex(key, duration, value, (err, reply) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(reply);
-        }
-      });
-    });
+    try {
+      await this.client.setex(key, duration, value);
+      return 'OK'; // Consistent with Redis
+    } catch (err) {
+      console.error(`Redis SETEX error for key ${key}: ${err}`);
+      return null;
+    }
   }
 
-  // Removes a key value pair
   async del(key) {
-    return new Promise((resolve, reject) => {
-      this.client.del(key, (err, reply) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(reply);
-        }
-      });
-    });
+    try {
+      await this.client.del(key);
+      return 1; // Consistent with Redis
+    } catch (err) {
+      console.error(`Redis DEL error for key ${key}: ${err}`);
+      return 0;
+    }
   }
 }
 
-// Export a single instance of RedisClient
 const redisClient = new RedisClient();
 export default redisClient;

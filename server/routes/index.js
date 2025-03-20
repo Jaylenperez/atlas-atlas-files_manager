@@ -3,6 +3,7 @@ const express = require('express');
 const {default: AC} = require('../controllers/AppController');
 const { default: dbClient } = require('../../utils/db');
 const { default: UC } = require('../controllers/UsersController');
+const { default: AuthControl } = require('../controllers/AuthController');
 
 const router = express.Router();
 //GETs
@@ -16,12 +17,25 @@ router.get('/stats', (req, res, next) => {
         .then(stats => res.json(stats))
         .catch(next); // pass errors to your error handling middleware
 });
+router.get('/connect', (req, res, next) => {
+    AuthControl.getConnect(req, res)
+    .then(auth => auth)
+    .catch(next)
+})
+router.get('/disconnect', (req, res, next) =>
+    { AuthControl.getDisconnect(req, res)
+        .then(auth => auth)
+        .catch(next)
+    });
+router.get('/users/me', (req, res, next) => {
+     UC.getMe(req, res)
+    .then(result => result)
+    .catch(next)
+});
 
 //POSTs
-router.post('/users', (req, res, next) => {
+router.post('/users', (req, res, error) => {
     UC.postNew(req, res)
-        .then(users => res.json(users))
-        .catch(next); // pass errors to your error handling middleware
 });
 
 
