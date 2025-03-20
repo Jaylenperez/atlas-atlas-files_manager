@@ -29,7 +29,7 @@ class UsersController {
 
       const hashed = sha1(password);
 
-      const { insertedId } = await db.collection('users').insertOne({ email, password: hashed });
+      const { insertedId } = await db.collection('users').insertOne({ id, email, password: hashed });
 
       res.status(201).json({ id: insertedId.toString(), email });
     } catch (err) {
@@ -38,28 +38,34 @@ class UsersController {
     }
   }
   async getMe(req, res) {
+    const token = req.headers['x-token'];
+
+    console.log(token)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized 1' });
+    }
+
+    const db = dbClient.getDB();
+    if (!db) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+
+    const redisKey = `auth_${token}`;
+    console.log(redisKey)
+    const userId = await redisClient.get(redisKey);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized 2' });
+    }
+    console.log(`money ${userId}`)
     try {
-      const token = req.headers['x-token'];
-      console.log(token)
-      if (!token) {
-        return res.status(401).json({ error: 'Unauthorized 1' });
-      }
-      const redisKey = `auth_${token}`;
-      console.log(redisKey)
-      const userId = redisClient.get(redisKey);
-      if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized 2' });
-      }
-      console.log(userId)
-      // Retrieve user and return only id and email
-      const user = await dbClient.getDB().collection('users').findOne({ id: userId._id });
-      console.log(user)
+      const user = await db.collection('users').findOne({_id: ObjectId(userId)});
+      console.log(`more money ${user.email}`)
       if (!user) {
-        return res.status(401).json({ error: error.message });
+        return res.status(401).json({ error: "no user at all" });
       }
       const result = {id: user._id,  email: user.email}
 
-      return result; // Return id and email only
+      return res.json(result); // Return id and email only
     } catch (error) {
       console.error("Error in getMe:", error);
       return res.status(500).json({ error: error.message });

@@ -29,7 +29,7 @@ router.get('/disconnect', (req, res, next) =>
     });
 router.get('/users/me', (req, res, next) => {
      UC.getMe(req, res)
-    .then(result => res.json(result))
+    .then(result => result)
     .catch(next)
 });
 

@@ -19,11 +19,24 @@ class RedisClient {
 
   async get(key) {
     try {
-      const result = this.client.get(key)
-      return result
-    } catch (error) {
+      const result = await new Promise((resolve, reject) => {
+        this.client.get(key, (err, reply) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(reply);
+          }
+        });
+      });
+
+      if (result === null) {
+        return false;
+      }
+
+      return `${result}`;
+    } catch (err) {
       console.error(`Redis GET error for key ${key}: ${err}`);
-      return false;
+      return null;
     }
   }
 
