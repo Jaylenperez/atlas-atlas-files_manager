@@ -1,3 +1,4 @@
+import { use } from 'chai';
 import crypto from 'crypto';
 const sha1 = require("sha1")
 const { default: dbClient, ObjectId } = require('../../utils/db');
@@ -30,7 +31,7 @@ class UsersController {
 
       const { insertedId } = await db.collection('users').insertOne({ email, password: hashed });
 
-      return res.status(201).json({ id: insertedId.toString(), email });
+      res.status(201).json({ id: insertedId.toString(), email });
     } catch (err) {
       console.error('UsersController.postNew error:', err);
       return res.status(500).json({ error: 'Internal error' });
@@ -39,22 +40,26 @@ class UsersController {
   async getMe(req, res) {
     try {
       const token = req.headers['x-token'];
+      console.log(token)
       if (!token) {
         return res.status(401).json({ error: 'Unauthorized 1' });
       }
       const redisKey = `auth_${token}`;
+      console.log(redisKey)
       const userId = redisClient.get(redisKey);
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized 2' });
       }
       console.log(userId)
       // Retrieve user and return only id and email
-      const user = await dbClient.getDB().collection('users').findOne({ _id: userId._id });
+      const user = await dbClient.getDB().collection('users').findOne({ id: userId._id });
+      console.log(user)
       if (!user) {
-        return res.status(401).json({ error: 'Unauthorized 3' });
+        return res.status(401).json({ error: error.message });
       }
+      const result = {id: user._id,  email: user.email}
 
-      return res.status(200).json({ id: user._id.toString(), email: user.email }); // Return id and email only
+      return result; // Return id and email only
     } catch (error) {
       console.error("Error in getMe:", error);
       return res.status(500).json({ error: error.message });

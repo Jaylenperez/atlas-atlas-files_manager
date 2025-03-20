@@ -19,7 +19,8 @@ class RedisClient {
 
   async get(key) {
     try {
-      return this.client.get(key);
+      const result = this.client.get(key)
+      return result
     } catch (error) {
       console.error(`Redis GET error for key ${key}: ${err}`);
       return false;

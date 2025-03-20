@@ -64,8 +64,8 @@ class AuthController{
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
-      await redisClient.del(redisKey);
-      return res.status(204).send();
+      let del = await redisClient.del(redisKey);
+      return res.status(204).send(del);
     } catch (error) {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
