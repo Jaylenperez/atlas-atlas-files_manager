@@ -4,6 +4,7 @@ const {default: AC} = require('../controllers/AppController');
 const { default: dbClient } = require('../../utils/db');
 const { default: UC } = require('../controllers/UsersController');
 const { default: AuthControl } = require('../controllers/AuthController');
+const { default: FilesControl } = require('../controllers/FilesControllers');
 
 const router = express.Router();
 //GETs
@@ -38,5 +39,7 @@ router.post('/users', (req, res, error) => {
     UC.postNew(req, res)
 });
 
-
+router.post('/files', (req, res) => {
+    FilesControl.postUpload(req, res)
+})
 module.exports = router;
