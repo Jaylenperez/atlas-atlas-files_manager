@@ -80,6 +80,69 @@ class FilesController {
             return res.status(500).json({ error: 'Internal server error' });
           }
     }
+
+    async getShow(req, res) {
+      const token = req.headers['x-token'];
+        if (!token) {
+          return res.status(401).json({ error: 'No token' });
+        }
+
+        const db = dbClient.getDB();
+        if (!db) {
+          return res.status(500).json({ error: 'No connection' });
+        }
+
+        const redisKey = `auth_${token}`;
+        const userID = await redisClient.get(redisKey);
+        if (!userID) {
+          return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        try {
+          const user = await db.collection('users').findOne({_id: ObjectId(userID)})
+          if (!user) {
+            return res.status(401).json({error: 'Not found 1'})
+          }
+          const fileId = req.params.id;
+          const file = await db.collection('files').findOne({_id: ObjectId(fileId), userId: userID})
+          console.log(fileId)
+
+          if (!file) {
+            return res.status(404).json({file})
+          }
+          return res.json(file)
+        } catch (err) {
+          return console.error(err.message)
+        }
+    }
+
+    async getIndex(req, res) {
+      const token = req.headers['x-token'];
+      if (!token) {
+          return res.status(401).json({ error: 'No token' });
+      }
+
+      const db = dbClient.getDB();
+      if (!db) {
+          return res.status(500).json({ error: 'No connection' });
+      }
+
+      const redisKey = `auth_${token}`;
+      const userID = await redisClient.get(redisKey);
+      if (!userID) {
+          return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const { parentId, page } = req.query;
+
+      try {
+
+
+          return res.json(files);
+      } catch (err) {
+          return console.error(err.message);
+      }
+  }
 }
 
 const FilesControl = new FilesController

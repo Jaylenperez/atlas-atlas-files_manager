@@ -34,7 +34,14 @@ router.get('/users/me', (req, res, next) => {
     .catch(next)
 });
 
-router.get('files/:id')
+router.get('/files/:id', (req, res, next) => {
+    FilesControl.getShow(req, res)
+    .then(result => result)
+});
+router.get('/files', (req, res, next) => {
+    FilesControl.getIndex(req, res)
+    .then(result => result)
+});
 
 //POSTs
 router.post('/users', (req, res, error) => {
