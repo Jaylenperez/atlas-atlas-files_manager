@@ -34,6 +34,8 @@ router.get('/users/me', (req, res, next) => {
     .catch(next)
 });
 
+router.get('files/:id')
+
 //POSTs
 router.post('/users', (req, res, error) => {
     UC.postNew(req, res)

@@ -42,7 +42,7 @@ class FilesController {
             return res.status(400).json({error: 'Parent not found'})
         }
         if (parentId && type !== 'folder') {
-           const parentFile = await db.collections('files').findOne({_id: ObjectId(parentId), type: 'folder'});
+           const parentFile = await db.collection('files').findOne({_id: ObjectId(parentId), type: 'folder'});
            if (!parentFile) {
             return res.status(400).json({error: 'Parent not found'})
            }
@@ -74,7 +74,7 @@ class FilesController {
               newFile.localPath = filePath;
             }
 
-            return res.status(201).json(newFile.toString());
+            return res.status(201).json(newFile);
           } catch (error) {
             console.error('Error in FilesController.postUpload:', error);
             return res.status(500).json({ error: 'Internal server error' });
