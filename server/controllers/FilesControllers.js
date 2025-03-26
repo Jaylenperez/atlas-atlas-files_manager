@@ -172,6 +172,77 @@ class FilesController {
       // Return updated file with status 200
       return res.status(200).json(updatedFile);
   }
+
+    async getShow(req, res) {
+      const token = req.headers['x-token'];
+        if (!token) {
+          return res.status(401).json({ error: 'No token' });
+        }
+
+        const db = dbClient.getDB();
+        if (!db) {
+          return res.status(500).json({ error: 'No connection' });
+        }
+
+        const redisKey = `auth_${token}`;
+        const userID = await redisClient.get(redisKey);
+        if (!userID) {
+          return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        try {
+          const user = await db.collection('users').findOne({_id: ObjectId(userID)})
+          if (!user) {
+            return res.status(401).json({error: 'Not found 1'})
+          }
+          const fileId = req.params.id;
+          const file = await db.collection('files').findOne({_id: ObjectId(fileId), userId: userID})
+          console.log(fileId)
+
+          if (!file) {
+            return res.status(404).json({file})
+          }
+          return res.json(file)
+        } catch (err) {
+          return console.error(err.message)
+        }
+    }
+
+    async getIndex(req, res) {
+      const token = req.headers['x-token'];
+      if (!token) {
+          return res.status(401).json({ error: 'No token' });
+      }
+
+      const db = dbClient.getDB();
+      if (!db) {
+          return res.status(500).json({ error: 'No connection' });
+      }
+
+      const redisKey = `auth_${token}`;
+      const userID = await redisClient.get(redisKey);
+      if (!userID) {
+          return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const { page } = req.query;
+      const pageSize = 20;
+      const skip = page * pageSize;
+
+      const safePage = parseInt(page) || 1;
+
+    try {
+      const cursor = db.collection('files').aggregate([
+      { $match: { userId: userID } },
+      { $skip: (safePage - 1) * pageSize },
+      { $limit: pageSize }
+    ]);
+
+        const files = await cursor.toArray();
+        return res.json(files);
+      }catch (err) {
+          return console.error(err.message);
+      }
+  }
 }
 
 const FilesControl = new FilesController
