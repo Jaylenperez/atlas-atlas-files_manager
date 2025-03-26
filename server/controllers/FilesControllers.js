@@ -3,6 +3,8 @@ import { error } from 'console';
 const { default: dbClient, ObjectId } = require('../../utils/db');
 const { default: redisClient } = require('../../utils/redis')
 const { v4: uuidv4 } = require('uuid');
+const mimetypes = require('mime-types');
+const fs = require('fs');
 
 class FilesController {
     constructor () {
@@ -48,18 +50,15 @@ class FilesController {
            }
         }
 
-        const newFile = {
-            userId,
-            name,
-            type,
-            isPublic: isPublic ?? false,
-            parentId: parentId ? ObjectId(parentId) : 0,
-            localPath: ''
-        };
         try {
-            const result = await db.collection('files').insertOne(newFile);
-            newFile._id = result.insertedId;
-
+        let newFile = {
+          userId,
+          name,
+          type,
+          isPublic: isPublic ?? false,
+          parentId: parentId ? ObjectId(parentId) : 0,
+          localPath: ''
+      }
             if (type !== 'folder') {
               const folderPath = process.env.FOLDER_PATH || '/tmp/files_manager';
               const fileName = uuidv4();
@@ -73,6 +72,8 @@ class FilesController {
 
               newFile.localPath = filePath;
             }
+            const result = await db.collection('files').insertOne(newFile);
+            newFile._id = result.insertedId;
 
             return res.status(201).json(newFile);
           } catch (error) {
@@ -103,7 +104,7 @@ class FilesController {
           if (!user) {
             return res.status(401).json({error: 'Not found 1'})
           }
-          const fileId = req.params.id;
+         const fileId = req.params.id;
           const file = await db.collection('files').findOne({_id: ObjectId(fileId), userId: userID})
           console.log(fileId)
 
@@ -134,8 +135,6 @@ class FilesController {
       }
       const { page } = req.query;
       const pageSize = 20;
-      const skip = page * pageSize;
-
       const safePage = parseInt(page) || 1;
 
     try {
@@ -151,7 +150,57 @@ class FilesController {
           return console.error(err.message);
       }
   }
-}
+
+  async getFile(req, res) {
+    const token = req.headers['x-token'];
+      if (!token) {
+          return res.status(401).json({ error: 'No token' });
+      }
+
+      const db = dbClient.getDB();
+      if (!db) {
+          return res.status(500).json({ error: 'No connection' });
+      }
+
+      const redisKey = `auth_${token}`;
+      const userID = await redisClient.get(redisKey);
+      if (!userID) {
+          return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const fileId = req.params.id;
+      const file = await db.collection('files').findOne({_id: ObjectId(fileId), userId: userID})
+      console.log(fileId)
+      if (!file) {
+        return res.status(404).json({error: error.message});
+      }
+
+      if (file.isPublic !== true && file.userId.toString() !== userID) {
+        return res.status(404).json({error: error.message});
+      }
+
+      if (file.type === 'folder') {
+        return res.status(400).json({error: 'A folder doesn\'t have content'});
+      }
+
+      if (!file.localPath) {
+        return res.status(404).json({error: 'File not locally present'});
+      }
+
+      try {
+        const fileContent = await new Promise((resolve, reject) => {
+          fs.readFile(file.localPath, (err, data) => {
+            if (err) reject(err);
+            else resolve(data);
+          });
+        });
+
+        res.setHeader('Content-Type', file.mimeType || 'application/octet-stream')
+
+        return res.send(fileContent);
+  } catch (error) {
+    console.error(error)
+  }}}
 
 const FilesControl = new FilesController
 export default FilesControl

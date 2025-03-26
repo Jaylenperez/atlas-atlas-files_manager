@@ -43,6 +43,11 @@ router.get('/files', (req, res, next) => {
     .then(result => result)
 });
 
+router.get('/files/:id/data', (req, res, next) => {
+    FilesControl.getFile(req, res)
+    .then(result => result)
+})
+
 //POSTs
 router.post('/users', (req, res, error) => {
     UC.postNew(req, res)
