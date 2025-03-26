@@ -132,14 +132,22 @@ class FilesController {
       if (!userID) {
           return res.status(401).json({ error: 'Unauthorized' });
       }
+      const { page } = req.query;
+      const pageSize = 20;
+      const skip = page * pageSize;
 
-      const { parentId, page } = req.query;
+      const safePage = parseInt(page) || 1;
 
-      try {
+    try {
+      const cursor = db.collection('files').aggregate([
+      { $match: { userId: userID } },
+      { $skip: (safePage - 1) * pageSize },
+      { $limit: pageSize }
+    ]);
 
-
-          return res.json(files);
-      } catch (err) {
+        const files = await cursor.toArray();
+        return res.json(files);
+      }catch (err) {
           return console.error(err.message);
       }
   }
