@@ -44,10 +44,4 @@ router.post('/users', (req, res, error) => {
 router.post('/files', (req, res) => {
     FilesControl.postUpload(req, res)
 })
-router.put('/files/:id/publish', (req, res, next) => {
-    FilesControl.putPublish(req, res)
-});
-router.put('/files/:id/unpublish', (req, res, next) => {
-    FilesControl.putUnpublish(req, res)
-});
 module.exports = router;
