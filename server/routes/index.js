@@ -56,6 +56,8 @@ router.post('/users', (req, res, error) => {
 router.post('/files', (req, res) => {
     FilesControl.postUpload(req, res)
 })
+
+//PUTs
 router.put('/files/:id/publish', (req, res, next) => {
     FilesControl.putPublish(req, res)
 });
