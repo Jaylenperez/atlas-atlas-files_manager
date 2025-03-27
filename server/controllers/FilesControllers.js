@@ -1,4 +1,6 @@
 import { error } from 'console';
+import { restart } from 'nodemon';
+import { abort } from 'process';
 
 const { default: dbClient, ObjectId } = require('../../utils/db');
 const { default: redisClient } = require('../../utils/redis')
@@ -81,6 +83,96 @@ class FilesController {
             return res.status(500).json({ error: 'Internal server error' });
           }
     }
+
+    async putPublish(req, res) {
+      // get token
+      const token = req.headers['x-token'];
+      if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // retrieve user id based on token
+      const redisKey = `auth_${token}`;
+        const userId = await redisClient.get(redisKey);
+        if (!userId) {
+          return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const fileId = req.params.id;
+        if (!ObjectId.isValid(fileId)) {
+          return res.status(400).json({ error: 'Invalid file ID' });
+        }
+
+        // get database connection
+        const db = dbClient.getDB();
+
+        // Find file by ID and user ID
+        const file = await db.collection('files').findOne({
+          _id: ObjectId(fileId),
+          userId: userId,
+        });
+
+        // get file id based on the request
+        if (!file) {
+          return res.status(404).json({ error: 'Not found' });
+        }
+
+        // Update isPublic to true
+        await db.collection('files').updateOne(
+          { _id: ObjectId(fileId) },
+          { $set: { isPublic: true } }
+        );
+
+        // Fetch updated document
+        const updatedFile = await db.collection('files').findOne({ _id: ObjectId(fileId) });
+
+        // return updated file document
+        return res.status(200).json(updatedFile);
+    }
+
+    async putUnpublish(req, res) {
+      // Get token from headers
+      const token = req.headers['x-token'];
+      if (!token) {
+          return res.status(401).json({ error: 'Unauthorized' });
+      }
+  
+      // Retrieve user ID from Redis using token
+      const redisKey = `auth_${token}`;
+      const userId = await redisClient.get(redisKey);
+      if (!userId) {
+          return res.status(401).json({ error: 'Unauthorized' });
+      }
+  
+      // Validate file ID from URL params
+      const fileId = req.params.id;
+      if (!ObjectId.isValid(fileId)) {
+          return res.status(400).json({ error: 'Invalid file ID' });
+      }
+  
+      // Connect to database and find file
+      const db = dbClient.getDB();
+      const file = await db.collection('files').findOne({
+          _id: ObjectId(fileId),
+          userId: userId,
+      });
+  
+      if (!file) {
+          return res.status(404).json({ error: 'Not found' });
+      }
+  
+      // Update file's isPublic status to false
+      await db.collection('files').updateOne(
+          { _id: ObjectId(fileId) },
+          { $set: { isPublic: false } }
+      );
+  
+      // Fetch the updated file
+      const updatedFile = await db.collection('files').findOne({ _id: ObjectId(fileId) });
+  
+      // Return updated file with status 200
+      return res.status(200).json(updatedFile);
+  }
 
     async getShow(req, res) {
       const token = req.headers['x-token'];
